@@ -30,7 +30,7 @@ public class IntroManager : MonoBehaviourPunCallbacks
         {
             // FadeOut();
 
-            if (PhotonNetwork.InRoom && PhotonNetwork.CurrentRoom.PlayerCount == 1)
+            if (PhotonNetwork.InRoom && PhotonNetwork.CurrentRoom.PlayerCount == 2)
                 SceneManager.LoadScene("BattleScene");
         }
     }
@@ -62,6 +62,8 @@ public class IntroManager : MonoBehaviourPunCallbacks
         if (PhotonNetwork.IsConnected)
         {
             PhotonNetwork.JoinOrCreateRoom("tmp", roomOption, null);
+
+            ActiveLoadingImage();
         }
     }
 
