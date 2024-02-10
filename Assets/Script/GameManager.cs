@@ -4,10 +4,13 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.UI;
+using System;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
     public static bool isMasterTurn;
+    static List<Vector3> stonePosList = new List<Vector3>(); // 바둑알 위치 리스트
+
     float fadeSpeed = 2.0f; // 투명도 감소 속도
 
     public Image turnImage;
@@ -23,12 +26,12 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     void Update()
     {
-        if (isMyTurnStarted())
+        if (IsMyTurnStarted())
         {
             FadeIn();
         }
 
-        else if (isMyTurnEnded())
+        else if (IsMyTurnEnded())
         {
             FadeOut();
         }
@@ -46,16 +49,38 @@ public class GameManager : MonoBehaviourPunCallbacks
         isMasterTurn = !isMasterTurn;
     }
 
-    bool isMyTurnStarted()
+    bool IsMyTurnStarted()  // 내 차례 이미지 보이게 할지 않할지
     {
         return PhotonNetwork.IsMasterClient && GameManager.isMasterTurn
             || !PhotonNetwork.IsMasterClient && !GameManager.isMasterTurn ? true : false;
     }
     
-    bool isMyTurnEnded()
+    bool IsMyTurnEnded()
     {
         return PhotonNetwork.IsMasterClient && !GameManager.isMasterTurn
             || !PhotonNetwork.IsMasterClient && GameManager.isMasterTurn ? true : false;
+    }
+
+    public void AddStonePosition(Vector3 pos)
+    {
+        stonePosList.Add(pos);
+    }
+
+    public static bool IsNotDuplicated(Vector3 pos)
+    {
+        // 리스트에서 요소를 찾습니다.
+        int index = stonePosList.IndexOf(pos);
+
+        if (index != -1)
+        {
+            Console.WriteLine($"찾는 요소가 리스트에서 인덱스 {index}에 있습니다.");
+            return false;
+        }
+        else
+        {
+            Console.WriteLine("찾는 요소가 리스트에 존재하지 않습니다.");
+            return true;
+        }        
     }
 
     void FadeIn()

@@ -8,11 +8,13 @@ public class Player : MonoBehaviourPunCallbacks
 {
     public PhotonView PV;
     GameObject gameManager;
+    AudioSource audio;
 
     // Start is called before the first frame update
     void Start()
     {
         gameManager = GameObject.Find("GameManager");
+        audio = GetComponent<AudioSource>();
     }
     void Update()
     {        
@@ -30,13 +32,15 @@ public class Player : MonoBehaviourPunCallbacks
                     {
                         Vector3 touchPos = Touch(touch);
 
-                        if (isTouchedInField(touchPos))
+                        // 충돌체가 발견되었는지 확인
+                        if (GameManager.IsNotDuplicated(touchPos) && isTouchedInField(touchPos))
                         {
                             PhotonNetwork.Instantiate("Black", touchPos, Quaternion.Euler(90f, 0f, 0f));
 
                             // 턴 전환
                             gameManager.GetComponent<PhotonView>().RPC("ChangeTurnRPC", RpcTarget.All);
-                        }                        
+                            PV.RPC("SoundRPC", RpcTarget.All);
+                        }
                     }
                 }
             }
@@ -51,12 +55,14 @@ public class Player : MonoBehaviourPunCallbacks
                     {
                         Vector3 touchPos = Touch(touch);
 
-                        if (isTouchedInField(touchPos))
+                        // 충돌체가 발견되었는지 확인
+                        if (GameManager.IsNotDuplicated(touchPos) && isTouchedInField(touchPos))
                         {
                             PhotonNetwork.Instantiate("White", touchPos, Quaternion.Euler(90f, 0f, 0f));
 
                             // 턴 전환
                             gameManager.GetComponent<PhotonView>().RPC("ChangeTurnRPC", RpcTarget.All);
+                            PV.RPC("SoundRPC", RpcTarget.All);
                         }
                     }
                 }
@@ -84,5 +90,11 @@ public class Player : MonoBehaviourPunCallbacks
     bool isTouchedInField(Vector3 touch)
     {
         return touch.x <= 9 && touch.x >= -9 && touch.y <= 9 && touch.y >= -9 ? true : false;
+    }
+
+    [PunRPC]
+    void SoundRPC()
+    {
+        audio.Play();
     }
 }
