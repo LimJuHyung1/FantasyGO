@@ -9,7 +9,10 @@ using System;
 public class GameManager : MonoBehaviourPunCallbacks
 {
     public static bool isMasterTurn;
-    static List<Vector3> stonePosList = new List<Vector3>(); // 바둑알 위치 리스트
+    static Dictionary<Vector3, int> stonePosList = new Dictionary<Vector3, int>(); // 바둑알 위치 리스트
+
+    int firstX = -11;
+    int firstY = 11;
 
     float fadeSpeed = 2.0f; // 투명도 감소 속도
 
@@ -18,11 +21,14 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     // Start is called before the first frame update
     void Start()
-    {
+    {        
+        InitField();
+
         PV.RPC("SetMasterTurn", RpcTarget.AllBuffered);
 
         PhotonNetwork.Instantiate("Player", Vector3.zero, Quaternion.identity);
     }
+
 
     void Update()
     {
@@ -49,6 +55,23 @@ public class GameManager : MonoBehaviourPunCallbacks
         isMasterTurn = !isMasterTurn;
     }
 
+    void InitField()        // 필드 배열 초기화
+    {
+        for(int i = 0; i < 12; i++)
+        {
+            firstX = -11;
+            for(int j = 0; j < 12; j++)
+            {
+                stonePosList.Add(new Vector3(firstX, firstY, -1), 0);
+                Debug.Log(new Vector3(firstX, firstY, -1));
+                firstX += 2;
+            }
+            firstY -= 2;
+        }
+    }
+
+    //-------------------------------------------//
+
     bool IsMyTurnStarted()  // 내 차례 이미지 보이게 할지 않할지
     {
         return PhotonNetwork.IsMasterClient && GameManager.isMasterTurn
@@ -61,27 +84,72 @@ public class GameManager : MonoBehaviourPunCallbacks
             || !PhotonNetwork.IsMasterClient && GameManager.isMasterTurn ? true : false;
     }
 
-    public void AddStonePosition(Vector3 pos)
+    //-------------------------------------------//
+
+    public void AddStonePosition(Vector3 pos, string tag)   // 좌표별 바둑돌 분류
     {
-        stonePosList.Add(pos);
+        if (tag == "Black")
+            stonePosList[pos] = 1;
+        else if (tag == "White")
+            stonePosList[pos] = 2;
     }
 
-    public static bool IsNotDuplicated(Vector3 pos)
+    public static bool IsNotDuplicated(Vector3 pos)     // 바둑돌 중첩되어 생성되지 않도록 하는 함수
     {
-        // 리스트에서 요소를 찾습니다.
-        int index = stonePosList.IndexOf(pos);
-
-        if (index != -1)
+        int value = stonePosList[pos];
+        if (value == 0)
         {
-            Console.WriteLine($"찾는 요소가 리스트에서 인덱스 {index}에 있습니다.");
-            return false;
+            return true;
         }
         else
         {
-            Console.WriteLine("찾는 요소가 리스트에 존재하지 않습니다.");
-            return true;
-        }        
+            return false;
+        }
     }
+
+    public int ReturnDictValue(Vector3 pos)
+    {
+        if (stonePosList.ContainsKey(pos))
+        {
+            return stonePosList[pos];
+        }
+        else return -1;
+    }
+
+    public bool AmIDead(Vector3 pos, bool isConnected, int stone)
+    {
+        Vector3 upDis = new Vector3(0, 2, 0);
+        Vector3 downDis = new Vector3(0, -2, 0);
+
+        Vector3 rightDis = new Vector3(2, 0, 0);
+        Vector3 leftDis = new Vector3(-2, 0, 0);
+
+        // 혼자인 바둑돌의 경우
+        if (isConnected == false)
+        {
+            Vector3 upPos = pos + upDis;
+            Vector3 downPos = pos + downDis;
+            Vector3 rightPos = pos + rightDis;
+            Vector3 leftPos = pos + leftDis;
+
+            // 잡히는 상황
+            if (ReturnDictValue(upPos) != stone &&
+                ReturnDictValue(downPos) != stone &&
+                ReturnDictValue(rightPos) != stone &&
+                ReturnDictValue(leftPos) != stone)
+            {
+                return true;
+            }
+            else return false;
+        }
+        // 연결되었을 경우 - 수정하기
+        else
+        {
+            return false;
+        }
+    }
+
+    //-------------------------------------------//
 
     void FadeIn()
     {
