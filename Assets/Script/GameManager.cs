@@ -5,16 +5,24 @@ using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.UI;
 using System;
+using static UnityEditor.PlayerSettings;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
     public static bool isMasterTurn;
-    static Dictionary<Vector3, int> stonePosList = new Dictionary<Vector3, int>(); // 바둑알 위치 리스트
+    [SerializeField]Dictionary<Vector3, GameObject> positionObject = new Dictionary<Vector3, GameObject>(); // 바둑알 위치 리스트
 
     int firstX = -11;
     int firstY = 11;
 
     float fadeSpeed = 2.0f; // 투명도 감소 속도
+
+    GameObject[] tmp = new GameObject[4];
+    // 0 - up
+    // 1 - down
+    // 2 - right
+    // 3 - left
+    Vector3[] aroundPos = new Vector3[4];
 
     public Image turnImage;
     public PhotonView PV;
@@ -62,8 +70,8 @@ public class GameManager : MonoBehaviourPunCallbacks
             firstX = -11;
             for(int j = 0; j < 12; j++)
             {
-                stonePosList.Add(new Vector3(firstX, firstY, -1), 0);
-                Debug.Log(new Vector3(firstX, firstY, -1));
+                positionObject.Add(new Vector3(firstX, firstY, -1), null);
+                //Debug.Log(new Vector3(firstX, firstY, -1));
                 firstX += 2;
             }
             firstY -= 2;
@@ -86,67 +94,61 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     //-------------------------------------------//
 
-    public void AddStonePosition(Vector3 pos, string tag)   // 좌표별 바둑돌 분류
+    public void AddStonePosition(Vector3 pos, GameObject stone)   // 좌표별 바둑돌 분류
     {
-        if (tag == "Black")
-            stonePosList[pos] = 1;
-        else if (tag == "White")
-            stonePosList[pos] = 2;
+        /*
+        if (stone.tag == "Black")
+            positionObject[pos] = 1;
+        else if (stone.tag == "White")
+            positionObject[pos] = 2;
+        */
+        positionObject[pos] = stone;
     }
 
-    public static bool IsNotDuplicated(Vector3 pos)     // 바둑돌 중첩되어 생성되지 않도록 하는 함수
+    public bool IsNotDuplicated(Vector3 pos)     // 바둑돌 중첩되어 생성되지 않도록 하는 함수
     {
-        int value = stonePosList[pos];
-        if (value == 0)
-        {
+        GameObject stone = positionObject[pos];
+        if (stone == null)
             return true;
-        }
         else
-        {
             return false;
-        }
     }
 
-    public int ReturnDictValue(Vector3 pos)
+    void SetAroundPosition(Vector3 pos)
     {
-        if (stonePosList.ContainsKey(pos))
-        {
-            return stonePosList[pos];
-        }
-        else return -1;
+        aroundPos[0] = pos + new Vector3(0, 2, 0);
+        aroundPos[1] = pos + new Vector3(0, -2, 0);
+        aroundPos[2] = pos + new Vector3(2, 0, 0);
+        aroundPos[3] = pos + new Vector3(-2, 0, 0);
     }
 
-    public bool AmIDead(Vector3 pos, bool isConnected, int stone)
+    public GameObject[] ReturnAroundStones(Vector3 pos)
     {
-        Vector3 upDis = new Vector3(0, 2, 0);
-        Vector3 downDis = new Vector3(0, -2, 0);
+        SetAroundPosition(pos);
 
-        Vector3 rightDis = new Vector3(2, 0, 0);
-        Vector3 leftDis = new Vector3(-2, 0, 0);
-
-        // 혼자인 바둑돌의 경우
-        if (isConnected == false)
+        for(int i = 0; i < tmp.Length; i++)
         {
-            Vector3 upPos = pos + upDis;
-            Vector3 downPos = pos + downDis;
-            Vector3 rightPos = pos + rightDis;
-            Vector3 leftPos = pos + leftDis;
+            tmp[i] = positionObject[aroundPos[i]];
+        }
 
-            // 잡히는 상황
-            if (ReturnDictValue(upPos) != stone &&
-                ReturnDictValue(downPos) != stone &&
-                ReturnDictValue(rightPos) != stone &&
-                ReturnDictValue(leftPos) != stone)
-            {
-                return true;
-            }
-            else return false;
-        }
-        // 연결되었을 경우 - 수정하기
-        else
+        return tmp;
+    }
+
+    public string[] ReturnAroundStonesTags(Vector3 pos)
+    {
+        string[] returnStrings = new string[4];
+
+        SetAroundPosition(pos);
+
+        for (int i = 0; i < tmp.Length; i++)
         {
-            return false;
+            tmp[i] = positionObject[aroundPos[i]];
+
+            if (tmp[i] != null)
+                returnStrings[i] = tmp[i].gameObject.tag;            
         }
+
+        return returnStrings;
     }
 
     //-------------------------------------------//

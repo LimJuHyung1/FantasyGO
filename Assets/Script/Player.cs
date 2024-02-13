@@ -33,7 +33,8 @@ public class Player : MonoBehaviourPunCallbacks
                         Vector3 touchPos = Touch(touch);
 
                         // 충돌체가 발견되었는지 확인
-                        if (GameManager.IsNotDuplicated(touchPos) && isTouchedInField(touchPos))
+                        if (gameManager.GetComponent<GameManager>().IsNotDuplicated(touchPos) 
+                            && isTouchedInField(touchPos))
                         {
                             PhotonNetwork.Instantiate("Black", touchPos, Quaternion.Euler(90f, 0f, 0f));
 
@@ -56,7 +57,8 @@ public class Player : MonoBehaviourPunCallbacks
                         Vector3 touchPos = Touch(touch);
 
                         // 충돌체가 발견되었는지 확인
-                        if (GameManager.IsNotDuplicated(touchPos) && isTouchedInField(touchPos))
+                        if (gameManager.GetComponent<GameManager>().IsNotDuplicated(touchPos)
+                            && isTouchedInField(touchPos))
                         {
                             PhotonNetwork.Instantiate("White", touchPos, Quaternion.Euler(90f, 0f, 0f));
 
