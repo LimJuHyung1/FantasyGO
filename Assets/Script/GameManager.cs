@@ -10,19 +10,12 @@ using static UnityEditor.PlayerSettings;
 public class GameManager : MonoBehaviourPunCallbacks
 {
     public static bool isMasterTurn;
-    [SerializeField]Dictionary<Vector3, GameObject> positionObject = new Dictionary<Vector3, GameObject>(); // 바둑알 위치 리스트
+    public Dictionary<Vector3, GameObject> positionObject = new Dictionary<Vector3, GameObject>(); // 바둑알 위치 리스트
 
     int firstX = -11;
     int firstY = 11;
 
     float fadeSpeed = 2.0f; // 투명도 감소 속도
-
-    GameObject[] tmp = new GameObject[4];
-    // 0 - up
-    // 1 - down
-    // 2 - right
-    // 3 - left
-    Vector3[] aroundPos = new Vector3[4];
 
     public Image turnImage;
     public PhotonView PV;
@@ -65,16 +58,17 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     void InitField()        // 필드 배열 초기화
     {
-        for(int i = 0; i < 12; i++)
+        Vector3 tmpVec = new Vector3(firstX, firstY, -1);
+
+        for (int i = 0; i < 12; i++)
         {
-            firstX = -11;
+            tmpVec.x = -11;
             for(int j = 0; j < 12; j++)
             {
-                positionObject.Add(new Vector3(firstX, firstY, -1), null);
-                //Debug.Log(new Vector3(firstX, firstY, -1));
-                firstX += 2;
+                positionObject.Add(tmpVec, null);
+                tmpVec.x += 2;
             }
-            firstY -= 2;
+            tmpVec.y -= 2;
         }
     }
 
@@ -96,59 +90,25 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public void AddStonePosition(Vector3 pos, GameObject stone)   // 좌표별 바둑돌 분류
     {
-        /*
-        if (stone.tag == "Black")
-            positionObject[pos] = 1;
-        else if (stone.tag == "White")
-            positionObject[pos] = 2;
-        */
         positionObject[pos] = stone;
+    }
+
+    public void SubStonePosition(Vector3 pos)
+    {
+        positionObject[pos] = null;
     }
 
     public bool IsNotDuplicated(Vector3 pos)     // 바둑돌 중첩되어 생성되지 않도록 하는 함수
     {
-        GameObject stone = positionObject[pos];
+        GameObject stone;
+
+        // 화면을 터치한 위치가 바둑판 바깥을 벗어날 경우 true 반환 - 바둑돌 생성되지 않도록 함
+        stone = positionObject.ContainsKey(pos) ? positionObject[pos] : null;
+
         if (stone == null)
             return true;
         else
             return false;
-    }
-
-    void SetAroundPosition(Vector3 pos)
-    {
-        aroundPos[0] = pos + new Vector3(0, 2, 0);
-        aroundPos[1] = pos + new Vector3(0, -2, 0);
-        aroundPos[2] = pos + new Vector3(2, 0, 0);
-        aroundPos[3] = pos + new Vector3(-2, 0, 0);
-    }
-
-    public GameObject[] ReturnAroundStones(Vector3 pos)
-    {
-        SetAroundPosition(pos);
-
-        for(int i = 0; i < tmp.Length; i++)
-        {
-            tmp[i] = positionObject[aroundPos[i]];
-        }
-
-        return tmp;
-    }
-
-    public string[] ReturnAroundStonesTags(Vector3 pos)
-    {
-        string[] returnStrings = new string[4];
-
-        SetAroundPosition(pos);
-
-        for (int i = 0; i < tmp.Length; i++)
-        {
-            tmp[i] = positionObject[aroundPos[i]];
-
-            if (tmp[i] != null)
-                returnStrings[i] = tmp[i].gameObject.tag;            
-        }
-
-        return returnStrings;
     }
 
     //-------------------------------------------//

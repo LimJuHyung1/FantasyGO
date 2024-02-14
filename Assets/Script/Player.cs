@@ -88,6 +88,11 @@ public class Player : MonoBehaviourPunCallbacks
         return touchPosition;
     }   
 
+    bool isInRange(Vector3 touchPos)        // 바둑판 범위 안을 터치하였는지 여부 반환
+    {
+        return touchPos.x > 10 || touchPos.x < -10 || touchPos.y > 10 || touchPos.y < -10 ? false : true;        
+    }
+
     // 필드 안에서 터치가 된 것인지 여부 반환
     bool isTouchedInField(Vector3 touch)
     {
