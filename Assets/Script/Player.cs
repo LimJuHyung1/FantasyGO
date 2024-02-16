@@ -9,11 +9,21 @@ public class Player : MonoBehaviourPunCallbacks
     public PhotonView PV;
     GameObject gameManager;
     AudioSource audio;
+    public int specialStone = 0;
 
     // Start is called before the first frame update
     void Start()
     {
         gameManager = GameObject.Find("GameManager");
+
+        // GameManager - viewIDStoneType 딕셔너리에 플레이어 viewID, 바둑돌 타입 추가
+        if (PhotonNetwork.IsMasterClient)
+            gameManager.GetComponent<GameManager>()
+                .PV.RPC("AddPlayerRPC", RpcTarget.All, PV.ViewID, "Black");
+        else
+            gameManager.GetComponent<GameManager>()
+                .PV.RPC("AddPlayerRPC", RpcTarget.All, PV.ViewID, "White");
+
         audio = GetComponent<AudioSource>();
     }
     void Update()

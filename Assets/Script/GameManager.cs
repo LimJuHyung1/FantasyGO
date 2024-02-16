@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 {
     public static bool isMasterTurn;
     public Dictionary<Vector3, GameObject> positionObject = new Dictionary<Vector3, GameObject>(); // 바둑알 위치 리스트
-
+    public Dictionary<int, string> viewIDStoneType = new Dictionary<int, string>();
     int firstX = -11;
     int firstY = 11;
 
@@ -71,6 +71,13 @@ public class GameManager : MonoBehaviourPunCallbacks
             tmpVec.y -= 2;
         }
     }
+
+    [PunRPC]
+    public void AddPlayerRPC(int viewID, string type)
+    {
+        if(!viewIDStoneType.ContainsKey(viewID))
+            viewIDStoneType.Add(viewID, type);
+    }    
 
     //-------------------------------------------//
 
